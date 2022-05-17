@@ -1,0 +1,23 @@
+def green_function1():
+    Size=150 # 200 * 200 neurons in one layer
+    distance = dis  # distance bewteen two layers (3cm)
+    ll = length  # layer length (8cm)
+    wl = 3e8 / Hz  # wave length
+    wn = 2 * np.pi / wl  # wave number
+    g = np.zeros((Size * Size, Size * Size), dtype=np.complex64)
+    c = ll /Size
+    for i in range(0, Size*Size, 1):
+        r=i%Size
+        s=i//Size
+        for k in range(i+1, Size*Size, 1):
+            m = k % Size
+            n = k // Size
+            rsr_rmn = np.sqrt(np.square(distance) + np.square(s * c - n * c) + np.square(r * c - m * c))
+            g[i][k] = np.exp(1j * wn * rsr_rmn) * (1 / (2 * np.pi * rsr_rmn) + 1 / (1j * wl)) * distance / (
+                    rsr_rmn * rsr_rmn)
+    g0=np.exp(1j * wn * distance) * (1 / (2 * np.pi * distance) + 1 / (1j * wl)) * distance / (
+                    distance*distance)
+    g=g.T+g
+    for i in range(0, Size * Size, 1):
+        g[i][i]=g0
+    return g
