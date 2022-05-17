@@ -1,0 +1,200 @@
+' figure
+Dim i As Long
+Dim j As Long
+Dim k As Long
+Const Length As Long=140
+Const Length1 As Long=140
+Const n1 As Double=0.4
+Const t As Long=5
+Const period As Long=5
+Const size As Integer=27
+
+
+Sub Main ()
+Dim LStr8 As String'先将数据读取到动态数组LStr()，假设文本文件存放于与程序文件同一个文件夹
+Dim LStr1 As String'先将数据读取到动态数组LStr()，假设文本文件存放于与程序文件同一个文件夹
+Dim LStr2 As String'先将数据读取到动态数组LStr()，假设文本文件存放于与程序文件同一个文件夹
+
+
+Dim data8(0 To size,0 To size) As Long
+Dim data1(0 To size,0 To size) As Double
+Dim data2(0 To size,0 To size) As Double
+
+Dim ii As Integer
+Dim jj As Integer
+Open "E:\lw\Green_fenction_option_Amp\layer_model_G\figure1_7.txt" For Input As #8
+Open "E:\lw\DNN\phase000.txt" For Input As #1
+Open "E:\lw\DNN\phase111.txt" For Input As #2
+Dim LS8() As String
+Dim LS1() As String
+Dim LS2() As String
+
+For ii=0 To size
+	'Debug.Print ii
+	If Not EOF(1) Then ' 循环至文件尾
+		Line Input #8, LStr8 '读入一行
+		Line Input #1, LStr1 '读入一行
+		Line Input #2, LStr2 '读入一行
+
+
+
+		LS8=Split(LStr8,",")
+		LS1=Split(LStr1,",")
+		LS2=Split(LStr2,",")
+
+		For jj=0 To size
+			data8(ii,jj)=Val(LS8(jj))
+			data1(ii,jj)=CDbl(LS1(jj))
+			data2(ii,jj)=CDbl(LS2(jj))
+
+			'Debug.Print CDbl(LS7(jj))
+
+			'MsgBox LS(jj)
+		Next jj
+		Erase LS8
+		Erase LS1
+		Erase LS2
+
+
+	End If
+Next ii
+
+'创建第1层
+With Brick
+     .Reset
+     .Name "Layer0"
+     .Component "component1"
+     .Material "Aluminum"
+     .Xrange -Length1/2,Length1/2
+     .Yrange -Length1/2,Length1/2
+     .Zrange  0,t
+     .Create
+  End With
+  '创建第2层
+With Brick
+     .Reset
+     .Name "Layer1"
+     .Component "component1"
+     .Material "Aluminum"
+     .Xrange -Length1/2,Length1/2
+     .Yrange -Length1/2,Length1/2
+     .Zrange  300,300+t
+     .Create
+  End With
+
+'创建第figure层
+With Brick
+     .Reset
+     .Name "Figure"
+     .Component "component0"
+     .Material "Aluminum"
+     .Xrange -Length1/2,Length1/2
+     .Yrange -Length1/2,Length1/2
+     .Zrange  -300,-300-t
+     .Create
+  End With
+
+
+
+
+For i=0 To size
+		For j=0 To size
+			h8=data8(i,j)
+			h1=data1(i,j)
+			h2=data2(i,j)
+
+			Debug.Print h1
+
+			'第1层
+			With Brick
+            .Reset
+            .Name "solid0_co"
+            .Component "component1"
+            .Material "Aluminum"
+            .Xrange -period/2, period/2
+            .Yrange -period/2, period/2
+            .Zrange t, t+10*h1/(2*3.1415*n1)
+            .Create
+            End With
+
+		    With Transform
+            .Reset
+            .Name "component1:solid0_co"
+            .Vector -Length/2+i*period+period/2, -Length/2+j*period+period/2, 0
+            .UsePickedPoints "False"
+            .InvertPickedPoints "False"
+            .MultipleObjects "False"
+            .GroupObjects "False"
+            .Repetitions "1"
+            .MultipleSelection "False"
+            .Destination ""
+            .Material ""
+            .Transform "Shape", "Translate"
+            End With
+            Solid.Add "component1:Layer0", "component1:solid0_co"
+
+
+          '第二层
+            With Brick
+            .Reset
+            .Name "solid1_co"
+            .Component "component1"
+            .Material "Aluminum"
+            .Xrange -period/2, period/2
+            .Yrange -period/2, period/2
+            .Zrange 300+t, 300+t+10*h2/(2*3.1415*n1)
+            .Create
+            End With
+
+		    With Transform
+            .Reset
+            .Name "component1:solid1_co"
+            .Vector -Length/2+i*period+period/2, -Length/2+j*period+period/2, 0
+            .UsePickedPoints "False"
+            .InvertPickedPoints "False"
+            .MultipleObjects "False"
+            .GroupObjects "False"
+            .Repetitions "1"
+            .MultipleSelection "False"
+            .Destination ""
+            .Material ""
+            .Transform "Shape", "Translate"
+            End With
+            Solid.Add "component1:Layer1", "component1:solid1_co"
+
+
+
+            'Figure层
+            With Brick
+            .Reset
+            .Name "solid1_co"
+            .Component "component0"
+            .Material "Aluminum"
+            .Xrange -period/2, period/2
+            .Yrange -period/2, period/2
+            .Zrange -300, -300-h8*t
+            .Create
+            End With
+
+		    With Transform
+            .Reset
+            .Name "component0:solid1_co"
+            .Vector -Length/2+i*period+period/2, -Length/2+j*period+period/2, 0
+            .UsePickedPoints "False"
+            .InvertPickedPoints "False"
+            .MultipleObjects "False"
+            .GroupObjects "False"
+            .Repetitions "1"
+            .MultipleSelection "False"
+            .Destination ""
+            .Material ""
+            .Transform "Shape", "Translate"
+            End With
+            Solid.Subtract "component0:Figure", "component0:solid1_co"
+
+
+
+		Next j
+Next i
+
+End Sub
